@@ -289,7 +289,7 @@ ChessGame.inDots = function (x, y) {
 }
 window.onload = function () {
     document.getElementsByTagName("body")[0].style.background = "url(img/" + Graph.page + "/bg.jpg)";
-    var socket = io('http://localhost:3000');
+    var socket = io('http://114.55.106.181:3000/');
     ChessGame.socket = socket;
     var roomNumber = prompt("请输入房间号");
     var r = /^\+?[1-9][0-9]*$/;
