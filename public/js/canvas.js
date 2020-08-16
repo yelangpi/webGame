@@ -3,10 +3,10 @@ var ChessGame = {};
 Graph.init = function () {
     Graph.width = Graph.style.width;
     Graph.height = Graph.style.height;
-    Graph.spaceX = Graph.style.spaceX;
-    Graph.spaceY = Graph.style.spaceY;
-    Graph.pointStartX = Graph.style.pointStartX;
-    Graph.pointStartY = Graph.style.pointStartY;
+    Graph.paceX = Graph.style.paceX;
+    Graph.paceY = Graph.style.paceY;
+    Graph.StartX = Graph.style.StartX;
+    Graph.StartY = Graph.style.StartY;
     Graph.page = Graph.style.page;
     Graph.canvas = document.getElementById("chess");
     Graph.pen = Graph.canvas.getContext("2d");
@@ -18,10 +18,10 @@ Graph.init = function () {
 Graph.style = {
     width: 523,
     height: 580,
-    spaceX: 57,
-    spaceY: 57,
-    pointStartX: 3,
-    pointStartY: 5,
+    paceX: 57,
+    paceY: 57,
+    StartX: 3,
+    StartY: 5,
     page: "style",
 }
 Graph.initMap = [
@@ -38,7 +38,6 @@ Graph.initMap = [
 ]
 
 Graph.chessmanKey = {
-    //红子
     'c': { text: "车", img: 'r_c', isMe: true, key: "c" },
     'm': { text: "马", img: 'r_m', isMe: true, key: "m" },
     'x': { text: "相", img: 'r_x', isMe: true, key: "x" },
@@ -47,7 +46,6 @@ Graph.chessmanKey = {
     'p': { text: "炮", img: 'r_p', isMe: true, key: "p" },
     'z': { text: "兵", img: 'r_z', isMe: true, key: "z" },
 
-    //黑子
     'C': { text: "车", img: 'h_c', isMe: false, key: "c" },
     'M': { text: "马", img: 'h_m', isMe: false, key: "m" },
     'X': { text: "相", img: 'h_x', isMe: false, key: "x" },
@@ -58,7 +56,6 @@ Graph.chessmanKey = {
 }
 Graph.image = {};
 
-//背景
 Graph.image.Bg = function () {
     this.isShow = true;
     this.show = function () {
@@ -68,7 +65,6 @@ Graph.image.Bg = function () {
     }
 }
 
-//边框
 Graph.image.Pane = function () {
     this.x = 0;
     this.y = 0;
@@ -78,22 +74,22 @@ Graph.image.Pane = function () {
 
     this.show = function () {
         if (this.isShow) {
-            Graph.pen.drawImage(Graph.paneImg, Graph.spaceX * this.x + Graph.pointStartX, Graph.spaceY * this.y + Graph.pointStartY);
-            Graph.pen.drawImage(Graph.paneImg, Graph.spaceX * this.new_x + Graph.pointStartX, Graph.spaceY * this.new_y + Graph.pointStartY);
+            Graph.pen.drawImage(Graph.paneImg, Graph.paceX * this.x + Graph.StartX, Graph.paceY * this.y + Graph.StartY);
+            Graph.pen.drawImage(Graph.paneImg, Graph.paceX * this.new_x + Graph.StartX, Graph.paceY * this.new_y + Graph.StartY);
         }
     }
 }
-//提示点
+
 Graph.image.Dot = function () {
     this.isShow = true;
     this.dots = []
     this.show = function () {
         for (var i = 0; i < this.dots.length; i++) {
-            if (this.isShow) Graph.pen.drawImage(Graph.dotImg, Graph.spaceX * this.dots[i][0] + 10 + Graph.pointStartX, Graph.spaceY * this.dots[i][1] + 10 + Graph.pointStartY)
+            if (this.isShow) Graph.pen.drawImage(Graph.dotImg, Graph.paceX * this.dots[i][0] + 10 + Graph.StartX, Graph.paceY * this.dots[i][1] + 10 + Graph.StartY)
         }
     }
 }
-//棋子
+
 Graph.chessmanList = [];
 Graph.image.Chessman = function (name, x, y) {
     this.name = name;
@@ -105,7 +101,7 @@ Graph.image.Chessman = function (name, x, y) {
 
     this.show = function () {
         if (this.isShow) {
-            Graph.pen.drawImage(Graph.chessman[this.nameFirst], Graph.spaceX * this.x + Graph.pointStartX, Graph.spaceY * this.y + Graph.pointStartY);
+            Graph.pen.drawImage(Graph.chessman[this.nameFirst], Graph.paceX * this.x + Graph.StartX, Graph.paceY * this.y + Graph.StartY);
         }
     }
 }
@@ -188,8 +184,8 @@ ChessGame.getClickPoint = function (e) {
         canvasPosY += c.offsetTop;
         c = c.offsetParent;
     }
-    var x = Math.round((e.pageX - canvasPosX - 20) / Graph.spaceX);
-    var y = Math.round((e.pageY - canvasPosY - 20) / Graph.spaceY);
+    var x = Math.round((e.pageX - canvasPosX - 20) / Graph.paceX);
+    var y = Math.round((e.pageY - canvasPosY - 20) / Graph.paceY);
     var value = { "x": x, "y": y };
     return value;
 }
@@ -206,6 +202,7 @@ ChessGame.clickPoint = function (x, y) {
             Graph.dot.dots = [];
             Graph.show();
             ChessGame.nowChess = false;
+            document.getElementById("clickAudio").play();
             // turn
             if (ChessGame.isMe) {
                 ChessGame.socket.emit("clickPoint", { x: x, y: y });
@@ -229,6 +226,7 @@ ChessGame.clickMan = function (key, x, y) {
     if (Graph.chessmanKey[keyFirst].isMe == ChessGame.isMe) {
         ChessGame.nowChess = key;
         Graph.dot.dots = Graph.Law[Graph.chessmanKey[keyFirst].key](x, y, Graph.initMap, Graph.chessmanKey[keyFirst].isMe);
+        document.getElementById("selectAudio").play();
         Graph.showPane(x, y, x, y);
         Graph.show();
     }
@@ -247,8 +245,17 @@ ChessGame.clickMan = function (key, x, y) {
                 Graph.dot.dots = [];
                 Graph.show();
                 ChessGame.nowChess = false;
+                document.getElementById("clickAudio").play();
                 // turn
                 ChessGame.isMe = !ChessGame.isMe;
+                if (keyFirst == 'J') {
+                    ChessGame.isMe = false;
+                    alert("游戏结束，你赢了！！！");
+                }
+                else if (keyFirst == 'j') {
+                    ChessGame.isMe = false;
+                    alert("游戏结束，你输了555");
+                }
             }
         }
     }
@@ -294,7 +301,6 @@ window.onload = function () {
         if (data.state == 0) {
             document.getElementById("messegeBox").innerHTML = "加入房间成功" + data.number;
             Graph.chessmanKey = {
-                //黑子
                 'c': { text: "车", img: 'h_c', isMe: true, key: "c" },
                 'm': { text: "马", img: 'h_m', isMe: true, key: "m" },
                 'x': { text: "相", img: 'h_x', isMe: true, key: "x" },
@@ -303,7 +309,6 @@ window.onload = function () {
                 'p': { text: "炮", img: 'h_p', isMe: true, key: "p" },
                 'z': { text: "兵", img: 'h_z', isMe: true, key: "z" },
 
-                //红子
                 'C': { text: "车", img: 'r_c', isMe: false, key: "c" },
                 'M': { text: "马", img: 'r_m', isMe: false, key: "m" },
                 'X': { text: "相", img: 'r_x', isMe: false, key: "x" },
@@ -317,7 +322,8 @@ window.onload = function () {
             Graph.show();
         }
         else {
-            document.getElementById("messegeBox").innerHTML = "创建房间成功" + data.number;
+            document.getElementById("messegeBox").innerHTML = "创建房间成功" + data.number + "等待对方加入";
+            ChessGame.isMe = false;
             Graph.show();
         }
     });
@@ -332,6 +338,10 @@ window.onload = function () {
     socket.on("disconnectFriend", function (data) {
         alert("对方退出房间,游戏结束");
     });
+    socket.on("connectFriend", function (data) {
+        ChessGame.isMe = true;
+        document.getElementById("messegeBox").innerHTML = "连接对手成功，轮到你了......";
+    });
     socket.on("ClickPoint", function (data) {
         console.log(data);
         ChessGame.clickPoint(data.x, data.y);
@@ -344,46 +354,29 @@ window.onload = function () {
 Graph.Law = {};
 Graph.Law.m = function (x, y, initMap, isMe) {
     var lawDot = [];
-    //1点
     if (y - 2 >= 0 && x + 1 <= 8 && !initMap[y - 1][x] && (!Graph.chessList2[initMap[y - 2][x + 1]] || Graph.chessList2[initMap[y - 2][x + 1]].isMe != isMe)) lawDot.push([x + 1, y - 2]);
-    //2点
     if (y - 1 >= 0 && x + 2 <= 8 && !initMap[y][x + 1] && (!Graph.chessList2[initMap[y - 1][x + 2]] || Graph.chessList2[initMap[y - 1][x + 2]].isMe != isMe)) lawDot.push([x + 2, y - 1]);
-    //4点
     if (y + 1 <= 9 && x + 2 <= 8 && !initMap[y][x + 1] && (!Graph.chessList2[initMap[y + 1][x + 2]] || Graph.chessList2[initMap[y + 1][x + 2]].isMe != isMe)) lawDot.push([x + 2, y + 1]);
-    //5点
     if (y + 2 <= 9 && x + 1 <= 8 && !initMap[y + 1][x] && (!Graph.chessList2[initMap[y + 2][x + 1]] || Graph.chessList2[initMap[y + 2][x + 1]].isMe != isMe)) lawDot.push([x + 1, y + 2]);
-    //7点
     if (y + 2 <= 9 && x - 1 >= 0 && !initMap[y + 1][x] && (!Graph.chessList2[initMap[y + 2][x - 1]] || Graph.chessList2[initMap[y + 2][x - 1]].isMe != isMe)) lawDot.push([x - 1, y + 2]);
-    //8点
     if (y + 1 <= 9 && x - 2 >= 0 && !initMap[y][x - 1] && (!Graph.chessList2[initMap[y + 1][x - 2]] || Graph.chessList2[initMap[y + 1][x - 2]].isMe != isMe)) lawDot.push([x - 2, y + 1]);
-    //10点
     if (y - 1 >= 0 && x - 2 >= 0 && !initMap[y][x - 1] && (!Graph.chessList2[initMap[y - 1][x - 2]] || Graph.chessList2[initMap[y - 1][x - 2]].isMe != isMe)) lawDot.push([x - 2, y - 1]);
-    //11点
     if (y - 2 >= 0 && x - 1 >= 0 && !initMap[y - 1][x] && (!Graph.chessList2[initMap[y - 2][x - 1]] || Graph.chessList2[initMap[y - 2][x - 1]].isMe != isMe)) lawDot.push([x - 1, y - 2]);
-
     return lawDot;
 }
 
 //相
 Graph.Law.x = function (x, y, initMap, isMe) {
     var lawDot = [];
-    if (isMe == true) { //红方
-        //4点半
+    if (isMe == true) { 
         if (y + 2 <= 9 && x + 2 <= 8 && !initMap[y + 1][x + 1] && (!Graph.chessList2[initMap[y + 2][x + 2]] || Graph.chessList2[initMap[y + 2][x + 2]].isMe != isMe)) lawDot.push([x + 2, y + 2]);
-        //7点半
         if (y + 2 <= 9 && x - 2 >= 0 && !initMap[y + 1][x - 1] && (!Graph.chessList2[initMap[y + 2][x - 2]] || Graph.chessList2[initMap[y + 2][x - 2]].isMe != isMe)) lawDot.push([x - 2, y + 2]);
-        //1点半
         if (y - 2 >= 5 && x + 2 <= 8 && !initMap[y - 1][x + 1] && (!Graph.chessList2[initMap[y - 2][x + 2]] || Graph.chessList2[initMap[y - 2][x + 2]].isMe != isMe)) lawDot.push([x + 2, y - 2]);
-        //10点半
         if (y - 2 >= 5 && x - 2 >= 0 && !initMap[y - 1][x - 1] && (!Graph.chessList2[initMap[y - 2][x - 2]] || Graph.chessList2[initMap[y - 2][x - 2]].isMe != isMe)) lawDot.push([x - 2, y - 2]);
     } else {
-        //4点半
         if (y + 2 <= 4 && x + 2 <= 8 && !initMap[y + 1][x + 1] && (!Graph.chessList2[initMap[y + 2][x + 2]] || Graph.chessList2[initMap[y + 2][x + 2]].isMe != isMe)) lawDot.push([x + 2, y + 2]);
-        //7点半
         if (y + 2 <= 4 && x - 2 >= 0 && !initMap[y + 1][x - 1] && (!Graph.chessList2[initMap[y + 2][x - 2]] || Graph.chessList2[initMap[y + 2][x - 2]].isMe != isMe)) lawDot.push([x - 2, y + 2]);
-        //1点半
         if (y - 2 >= 0 && x + 2 <= 8 && !initMap[y - 1][x + 1] && (!Graph.chessList2[initMap[y - 2][x + 2]] || Graph.chessList2[initMap[y - 2][x + 2]].isMe != isMe)) lawDot.push([x + 2, y - 2]);
-        //10点半
         if (y - 2 >= 0 && x - 2 >= 0 && !initMap[y - 1][x - 1] && (!Graph.chessList2[initMap[y - 2][x - 2]] || Graph.chessList2[initMap[y - 2][x - 2]].isMe != isMe)) lawDot.push([x - 2, y - 2]);
     }
     return lawDot;
@@ -392,27 +385,18 @@ Graph.Law.x = function (x, y, initMap, isMe) {
 //士
 Graph.Law.s = function (x, y, initMap, isMe) {
     var lawDot = [];
-    if (isMe == true) { //红方
-        //4点半
+    if (isMe == true) {
         if (y + 1 <= 9 && x + 1 <= 5 && (!Graph.chessList2[initMap[y + 1][x + 1]] || Graph.chessList2[initMap[y + 1][x + 1]].isMe != isMe)) lawDot.push([x + 1, y + 1]);
-        //7点半
         if (y + 1 <= 9 && x - 1 >= 3 && (!Graph.chessList2[initMap[y + 1][x - 1]] || Graph.chessList2[initMap[y + 1][x - 1]].isMe != isMe)) lawDot.push([x - 1, y + 1]);
-        //1点半
         if (y - 1 >= 7 && x + 1 <= 5 && (!Graph.chessList2[initMap[y - 1][x + 1]] || Graph.chessList2[initMap[y - 1][x + 1]].isMe != isMe)) lawDot.push([x + 1, y - 1]);
-        //10点半
         if (y - 1 >= 7 && x - 1 >= 3 && (!Graph.chessList2[initMap[y - 1][x - 1]] || Graph.chessList2[initMap[y - 1][x - 1]].isMe != isMe)) lawDot.push([x - 1, y - 1]);
     } else {
-        //4点半
         if (y + 1 <= 2 && x + 1 <= 5 && (!Graph.chessList2[initMap[y + 1][x + 1]] || Graph.chessList2[initMap[y + 1][x + 1]].isMe != isMe)) lawDot.push([x + 1, y + 1]);
-        //7点半
         if (y + 1 <= 2 && x - 1 >= 3 && (!Graph.chessList2[initMap[y + 1][x - 1]] || Graph.chessList2[initMap[y + 1][x - 1]].isMe != isMe)) lawDot.push([x - 1, y + 1]);
-        //1点半
         if (y - 1 >= 0 && x + 1 <= 5 && (!Graph.chessList2[initMap[y - 1][x + 1]] || Graph.chessList2[initMap[y - 1][x + 1]].isMe != isMe)) lawDot.push([x + 1, y - 1]);
-        //10点半
         if (y - 1 >= 0 && x - 1 >= 3 && (!Graph.chessList2[initMap[y - 1][x - 1]] || Graph.chessList2[initMap[y - 1][x - 1]].isMe != isMe)) lawDot.push([x - 1, y - 1]);
     }
     return lawDot;
-
 }
 
 //将
@@ -428,25 +412,16 @@ Graph.Law.j = function (x, y, initMap, isMe) {
         return true;
     })();
 
-    if (isMe == true) { //红方
-        //下
+    if (isMe == true) { 
         if (y + 1 <= 9 && (!Graph.chessList2[initMap[y + 1][x]] || Graph.chessList2[initMap[y + 1][x]].isMe != isMe)) lawDot.push([x, y + 1]);
-        //上
         if (y - 1 >= 7 && (!Graph.chessList2[initMap[y - 1][x]] || Graph.chessList2[initMap[y - 1][x]].isMe != isMe)) lawDot.push([x, y - 1]);
-        //老将对老将的情况
         if (Graph.chessList2["j0"].x == Graph.chessList2["J0"].x && isNull) lawDot.push([Graph.chessList2["J0"].x, Graph.chessList2["J0"].y]);
-
     } else {
-        //下
         if (y + 1 <= 2 && (!Graph.chessList2[initMap[y + 1][x]] || Graph.chessList2[initMap[y + 1][x]].isMe != isMe)) lawDot.push([x, y + 1]);
-        //上
         if (y - 1 >= 0 && (!Graph.chessList2[initMap[y - 1][x]] || Graph.chessList2[initMap[y - 1][x]].isMe != isMe)) lawDot.push([x, y - 1]);
-        //老将对老将的情况
         if (Graph.chessList2["j0"].x == Graph.chessList2["J0"].x && isNull) lawDot.push([Graph.chessList2["j0"].x, Graph.chessList2["j0"].y]);
     }
-    //右
     if (x + 1 <= 5 && (!Graph.chessList2[initMap[y][x + 1]] || Graph.chessList2[initMap[y][x + 1]].isMe != isMe)) lawDot.push([x + 1, y]);
-    //左
     if (x - 1 >= 3 && (!Graph.chessList2[initMap[y][x - 1]] || Graph.chessList2[initMap[y][x - 1]].isMe != isMe)) lawDot.push([x - 1, y]);
     return lawDot;
 }
@@ -454,7 +429,6 @@ Graph.Law.j = function (x, y, initMap, isMe) {
 //炮
 Graph.Law.p = function (x, y, initMap, isMe) {
     var lawDot = [];
-    //左侧检索
     var n = 0;
     for (var i = x - 1; i >= 0; i--) {
         if (initMap[y][i]) {
@@ -463,13 +437,12 @@ Graph.Law.p = function (x, y, initMap, isMe) {
                 continue;
             } else {
                 if (Graph.chessList2[initMap[y][i]].isMe != isMe) lawDot.push([i, y]);
-                break
+                break;
             }
         } else {
-            if (n == 0) lawDot.push([i, y])
+            if (n == 0) lawDot.push([i, y]);
         }
     }
-    //右侧检索
     var n = 0;
     for (var i = x + 1; i <= 8; i++) {
         if (initMap[y][i]) {
@@ -478,13 +451,12 @@ Graph.Law.p = function (x, y, initMap, isMe) {
                 continue;
             } else {
                 if (Graph.chessList2[initMap[y][i]].isMe != isMe) lawDot.push([i, y]);
-                break
+                break;
             }
         } else {
-            if (n == 0) lawDot.push([i, y])
+            if (n == 0) lawDot.push([i, y]);
         }
     }
-    //上检索
     var n = 0;
     for (var i = y - 1; i >= 0; i--) {
         if (initMap[i][x]) {
@@ -493,13 +465,12 @@ Graph.Law.p = function (x, y, initMap, isMe) {
                 continue;
             } else {
                 if (Graph.chessList2[initMap[i][x]].isMe != isMe) lawDot.push([x, i]);
-                break
+                break;
             }
         } else {
-            if (n == 0) lawDot.push([x, i])
+            if (n == 0) lawDot.push([x, i]);
         }
     }
-    //下检索
     var n = 0;
     for (var i = y + 1; i <= 9; i++) {
         if (initMap[i][x]) {
@@ -508,10 +479,10 @@ Graph.Law.p = function (x, y, initMap, isMe) {
                 continue;
             } else {
                 if (Graph.chessList2[initMap[i][x]].isMe != isMe) lawDot.push([x, i]);
-                break
+                break;
             }
         } else {
-            if (n == 0) lawDot.push([x, i])
+            if (n == 0) lawDot.push([x, i]);
         }
     }
     return lawDot;
@@ -520,61 +491,50 @@ Graph.Law.p = function (x, y, initMap, isMe) {
 //卒
 Graph.Law.z = function (x, y, initMap, isMe) {
     var lawDot = [];
-    if (isMe == true) { //红方
-        //上
+    if (isMe == true) {
         if (y - 1 >= 0 && (!Graph.chessList2[initMap[y - 1][x]] || Graph.chessList2[initMap[y - 1][x]].isMe != isMe)) lawDot.push([x, y - 1]);
-        //右
         if (x + 1 <= 8 && y <= 4 && (!Graph.chessList2[initMap[y][x + 1]] || Graph.chessList2[initMap[y][x + 1]].isMe != isMe)) lawDot.push([x + 1, y]);
-        //左
         if (x - 1 >= 0 && y <= 4 && (!Graph.chessList2[initMap[y][x - 1]] || Graph.chessList2[initMap[y][x - 1]].isMe != isMe)) lawDot.push([x - 1, y]);
     } else {
-        //下
         if (y + 1 <= 9 && (!Graph.chessList2[initMap[y + 1][x]] || Graph.chessList2[initMap[y + 1][x]].isMe != isMe)) lawDot.push([x, y + 1]);
-        //右
         if (x + 1 <= 8 && y >= 5 && (!Graph.chessList2[initMap[y][x + 1]] || Graph.chessList2[initMap[y][x + 1]].isMe != isMe)) lawDot.push([x + 1, y]);
-        //左
         if (x - 1 >= 0 && y >= 5 && (!Graph.chessList2[initMap[y][x - 1]] || Graph.chessList2[initMap[y][x - 1]].isMe != isMe)) lawDot.push([x - 1, y]);
     }
-
     return lawDot;
 }
 
 Graph.Law.c = function (x, y, initMap, isMe) {
     var lawDot = [];
-    //左侧检索
     for (var i = x - 1; i >= 0; i--) {
         if (initMap[y][i]) {
             if (Graph.chessList2[initMap[y][i]].isMe != isMe) lawDot.push([i, y]);
-            break
+            break;
         } else {
-            lawDot.push([i, y])
+            lawDot.push([i, y]);
         }
     }
-    //右侧检索
     for (var i = x + 1; i <= 8; i++) {
         if (initMap[y][i]) {
             if (Graph.chessList2[initMap[y][i]].isMe != isMe) lawDot.push([i, y]);
-            break
+            break;
         } else {
-            lawDot.push([i, y])
+            lawDot.push([i, y]);
         }
     }
-    //上检索
     for (var i = y - 1; i >= 0; i--) {
         if (initMap[i][x]) {
             if (Graph.chessList2[initMap[i][x]].isMe != isMe) lawDot.push([x, i]);
-            break
+            break;
         } else {
-            lawDot.push([x, i])
+            lawDot.push([x, i]);
         }
     }
-    //下检索
     for (var i = y + 1; i <= 9; i++) {
         if (initMap[i][x]) {
             if (Graph.chessList2[initMap[i][x]].isMe != isMe) lawDot.push([x, i]);
-            break
+            break;
         } else {
-            lawDot.push([x, i])
+            lawDot.push([x, i]);
         }
     }
     return lawDot;
